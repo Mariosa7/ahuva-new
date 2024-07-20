@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>אהובה בר טיפים</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f0f4f8; /* Light blue-gray background */
+            color: #2c3e50; /* Dark text color */
+            direction: rtl; /* Right-to-left direction for Hebrew */
+        }
+        h1 {
+            background: #3498db; /* Bright blue background */
+            color: #fff; /* White text */
+            padding: 20px;
+            text-align: center;
+            margin: 0;
+            border-bottom: 5px solid #2980b9; /* Darker blue border */
+        }
+        h2 {
+            text-align: center;
+            color: #3498db; /* Bright blue color for subheadings */
+            margin: 20px 0;
+        }
+        form {
+            background: #fff; /* White background for the form */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2); /* Stronger shadow */
+            max-width: 600px;
+            margin: 20px auto;
+            border-top: 5px solid #3498db; /* Blue border-top */
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+            color: #2980b9; /* Dark blue color for labels */
+        }
+        input, button {
+            display: block;
+            width: calc(100% - 22px); /* Adjust for padding and borders */
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+        }
+        input {
+            font-size: 16px;
+        }
+        button {
+            background-color: #3498db; /* Bright blue background for buttons */
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9; /* Darker blue on hover */
+        }
+        #result, #workerResult {
+            margin-top: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        #workerResult p {
+            margin: 5px 0;
+            font-size: 18px;
+            color: #3498db; /* Bright blue color for worker results */
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>אהובה בר טיפים</h1>
+
+    <form id="workerForm">
+        <label for="workerName">שם עובד:</label>
+        <input type="text" id="workerName" name="workerName" required>
+        <label for="hours">שעות עבודה:</label>
+        <input type="number" id="hours" name="hours" min="0" required>
+        <label for="minutes">דקות עבודה:</label>
+        <input type="number" id="minutes" name="minutes" min="0" max="59" required>
+        <div class="button-container">
+            <button type="button" id="addWorkerButton">הוסף עובד</button>
+            <button type="button" id="removeWorkerButton">הסר עובד אחרון</button>
+        </div>
+    </form>
+
+    <div id="result"></div>
+
+    <h2>הכנס סכום טיפים וחישוב</h2>
+    <form id="totalTipsForm">
+        <label for="totalTips">סך כל הטיפים:</label>
+        <input type="number" id="totalTips" name="totalTips" min="0" required>
+        <button type="submit">חשב טיפ</button>
+    </form>
+
+    <div id="workerResult"></div>
+
+    <script>
+        let workers = [];
+        let totalHours = 0;
+
+        function updateResults() {
+            document.getElementById('result').textContent = `סך כל השעות: ${totalHours.toFixed(2)}`;
+            let workerResults = workers.map(worker => {
+                let amount = worker.hours * netPerHour;
+                return `<p>${worker.name}: ${amount.toFixed(2)}</p>`;
+            }).join('');
+            document.getElementById('workerResult').innerHTML = workerResults;
+        }
+
+        document.getElementById('addWorkerButton').addEventListener('click', function() {
+            let workerName = document.getElementById('workerName').value;
+            let hours = parseInt(document.getElementById('hours').value);
+            let minutes = parseInt(document.getElementById('minutes').value);
+
+            function convertToDecimalTime(hours, minutes) {
+                let decimalMinutes = minutes * (100 / 60);
+                return hours + (decimalMinutes / 100);
+            }
+
+            let decimalTime = convertToDecimalTime(hours, minutes);
+            totalHours += decimalTime;
+
+            workers.push({
+                name: workerName,
+                hours: decimalTime
+            });
+
+            document.getElementById('workerName').value = '';
+            document.getElementById('hours').value = '';
+            document.getElementById('minutes').value = '';
+
+            updateResults();
+        });
+
+        document.getElementById('removeWorkerButton').addEventListener('click', function() {
+            if (workers.length > 0) {
+                let lastWorker = workers.pop();
+                totalHours -= lastWorker.hours;
+                updateResults();
+            } else {
+                alert('אין עובדים להסיר.');
+            }
+        });
+
+        let netPerHour = 0; // Default value to be set after tips calculation
+
+        document.getElementById('totalTipsForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            let totalTips = parseFloat(document.getElementById('totalTips').value);
+            let allocation = totalHours * 6;
+            netPerHour = (totalTips - allocation) / totalHours;
+
+            document.getElementById('result').textContent += `, הפרשה: ${allocation.toFixed(2)}, נטו לשעה: ${netPerHour.toFixed(2)}`;
+
+            updateResults();
+        });
+    </script>
+</body>
+</html>
